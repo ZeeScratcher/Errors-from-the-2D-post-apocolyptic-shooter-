@@ -1,7 +1,7 @@
 ############################
 # File name Lil Shooter.py #                 
 # By Zee_Scratcher         #
-# v 0.0.3                  #
+# v 0.0.5                  #
 #                          #
 ############################
 import pygame
@@ -15,6 +15,8 @@ pygame.init()
 background_colour = (141, 210, 242)
 #sets a light blue background for the program
 powerMeter = 0
+isinPowerStrike = False
+zombiecountForLevel2 = 0
 black = (0, 0, 0)
 white = (255, 255, 255)
 red = (200, 0, 0)
@@ -39,6 +41,7 @@ IdleR = [pygame.image.load('IR1.png'), pygame.image.load('IR2.png'), pygame.imag
 IdleL = [pygame.image.load('IL1.png'), pygame.image.load('IL2.png'), pygame.image.load('IL3.png'), pygame.image.load('IL4.png'),pygame.image.load('IL3.png'),]
 ShootR = [pygame.image.load('GFR1.png'),pygame.image.load('GFR2.png'),pygame.image.load('GFR3.png'),pygame.image.load('GFR4.png'),]
 ShootL = [pygame.image.load('GFL1.png'),pygame.image.load('GFL2.png'),pygame.image.load('GFL3.png'),pygame.image.load('GFL4.png'),]
+drip1 = pygame.image.load('LD.png')
 bg = pygame.image.load('Sunset.jpg')
 gameIcon = pygame.image.load('icon1.png')
 #imports images from a folder located on the device
@@ -58,7 +61,8 @@ music = pygame.mixer.music.load('Music.wav')
 
 #imports the music in the background
 
-
+level = 3
+zombiecount = 0
 
 class Player(object):
     #filles all the code for the player
@@ -149,13 +153,17 @@ class Player(object):
                     screen.blit(PunchR[self.punchcount//5], (self.x,self.y))
                     self.punchcount += 1
         self.hitbox = (self.x, self.y, 51, 74)# this create an invisible hitbox
-        pygame.draw.rect(screen, (255,0,0), (self.hitbox[0], self.hitbox[1] - 20, 50, 10))#this makes the health bar
-        pygame.draw.rect(screen, (0,255,0), (self.hitbox[0], self.hitbox[1] - 20, 50 - ((50/10) * (10 - self.health)), 10))#this code is to tell the program that when it losses health it clears a segment of green and replaces it with red
-        pygame.draw.rect(screen, (0,0,255), (self.hitbox[0], self.hitbox[1] - 7, 50, 10))#this makes the health bar
-        pygame.draw.rect(screen, (0,0,255), (self.hitbox[0], self.hitbox[1] - 7, 50 - ((50/10) * (10 - powerMeter)), 10))
+        pygame.draw.rect(screen, (255,0,0), (self.hitbox[0], self.hitbox[1] - 35, 50, 10))#this makes the health bar
+        pygame.draw.rect(screen, (0,255,0), (self.hitbox[0], self.hitbox[1] - 35, 50 - ((50/10) * (10 - self.health)), 10))#this code is to tell the program that when it losses health it clears a segment of green and replaces it with red
+        
         #pygame.draw.rect(screen, (255,0,0), self.hitbox,2)
 
         pygame.display.update()#this tels the program to remember to put all the images onto the screen
+
+
+    def drawP(self, screen):
+        pygame.draw.rect(screen, (255,0,0), (self.hitbox[0], self.hitbox[1] - 10, 50, 10))#this makes the health bar
+        pygame.draw.rect(screen, (0,0,255), (self.hitbox[0], self.hitbox[1] - 10, 50 - ((50/10) * (10 - powerMeter)), 10))
 
     def hit(self):#this organises the code for the hitboxes colliding
         if self.health > 0:
@@ -200,7 +208,7 @@ class Enemy(object):
 
 
 
-    def draw(self,win):
+    def draw(self,screen):
         self.move()#this tells it to do everthin in the move function when it is drawn
         if self.visible:#this tells the program to dellete itself if it is 'dead'.
             if self.walkcount + 1 >= 33:
@@ -234,12 +242,7 @@ class Enemy(object):
                 self.velo = self.velo * -1
                 self.walkcount = 0
 
-    def hit(self):# this stores the functions for when it is hit
-
-        if self.health > 0:
-            self.health -= 1
-        else:
-            self.visible = False
+    
 
         #print('hit')# to test it was hit i put a print function
 
@@ -264,7 +267,7 @@ class Enemy1(object):
 
 
 
-    def draw(self,win):
+    def draw(self,screen):
         self.move()#this tells it to do everthin in the move function when it is drawn
         if self.visible:#this tells the program to dellete itself if it is 'dead'.
             if self.walkcount + 1 >= 33:
@@ -295,19 +298,103 @@ class Enemy1(object):
                 self.velo = self.velo * -1
                 self.walkcount = 0
 
-    def hit(self):# this stores the functions for when it is hit
+    # this stores the functions for when it is hit
 
-        if self.health > 0:
-            self.health -= 1
-        else:
-            self.visible = False
+        
 
         #print('hit')# to test it was hit i put a print function
 
 
-        pygame.draw.rect(screen, (0,255,0), (580, 580, 50, 10))
-        pygame.draw.rect(screen, (255,0,0), (580, 580, 50 - ((50/10) * (10 + powerMeter)), 10))
+
+class Enemy2(object):
+
+    ZwalkRight = [pygame.image.load('ZR1.png'), pygame.image.load('ZR2.png'), pygame.image.load('ZR1.png'), pygame.image.load('ZR2.png'),pygame.image.load('ZR1.png'), pygame.image.load('ZR2.png'), pygame.image.load('ZR1.png'), pygame.image.load('ZR2.png'),pygame.image.load('ZR2.png'),pygame.image.load('ZR2.png'),pygame.image.load('ZR2.png'),]
+    ZwalkLeft = [pygame.image.load('ZL1.png'), pygame.image.load('ZL2.png'),pygame.image.load('ZL1.png'), pygame.image.load('ZL2.png'),pygame.image.load('ZL1.png'), pygame.image.load('ZL2.png'),pygame.image.load('ZL1.png'), pygame.image.load('ZL2.png'),pygame.image.load('ZL1.png'),pygame.image.load('ZL1.png'),pygame.image.load('ZL1.png'),]
+    #this imports the images of the zombie
+    def __init__(self, x, y, width, height, end):
+        self.x = x
+        self.y = y
+        self.width = width
+        self.height = height
+        self.end = end
+        self.path = [self.x, self.end]
+        self.walkcount = 0
+        self.velo = 3
+        self.hitbox = (self.x + 20, self.y, 28, 60)
+        self.health = 10
+        self.visible = True
+        #sets all the varibles for the zombie
+
+
+
+    def draw(self,screen):
+        self.move()#this tells it to do everthin in the move function when it is drawn
+        if self.visible:#this tells the program to dellete itself if it is 'dead'.
+            if self.walkcount + 1 >= 33:
+                self.walkcount = 0
+
+            if self.velo > 0:
+                screen.blit(self.ZwalkRight[self.walkcount//3], (self.x, self.y))#this sets the walking animation for when it moves right
+                self.walkcount += 1
+            else:
+                screen.blit(self.ZwalkLeft[self.walkcount //3], (self.x, self.y))#same thing  here exept its for when it moves left
+                self.walkcount += 1
+            pygame.draw.rect(screen, (255,0,0), (self.hitbox[0], self.hitbox[1] - 20, 50, 10))# this is the health segment for the zombie
+            pygame.draw.rect(screen, (0,255,0), (self.hitbox[0], self.hitbox[1] - 20, 50 - ((50/10) * (10 - self.health)), 10))
+            self.hitbox = (self.x, self.y, 44, 74)
+            #pygame.draw.rect(screen, (255,0,0), self.hitbox,2)
+    
+    def move(self):
+        if self.velo > 0:#this has all the function for its moving paterns
+            if self.x +  self.velo < self.path[1]:
+                self.x += self.velo
+            else:
+                self.velo = self.velo * -1
+                self.walkcount = 0
+        else:
+            if self.x - self.velo > self.path[0]:
+                self.x += self.velo
+            else:
+                self.velo = self.velo * -1
+                self.walkcount = 0
+
+    # this stores the functions for when it is hit
+
         
+
+        #print('hit')# to test it was hit i put a print function
+
+class Falling_Lava(object):
+    
+    def __init__(self, x, y, width, height):
+        self.x = x
+        self.y = y
+        self.width = width
+        self.height = height
+        self.visible = True
+        self.velo = 10
+
+    def draw(self,screen):
+        if self.visible == True:
+            screen.blit(drip1, (self.x,self.y))
+
+class Falling_Lava1(object):
+    
+    def __init__(self, x, y, width, height):
+        self.x = x
+        self.y = y
+        self.width = width
+        self.height = height
+        self.visible = True
+        self.velo = 10
+
+    def draw(self,screen):
+        if self.visible == True:
+            screen.blit(drip1, (self.x,self.y))
+        
+
+
+
 
 def text_objects(text, font):
     textSurface = font.render(text, True, black)
@@ -344,11 +431,11 @@ zombie1 = Enemy1(100, 508, 64, 64, 450)
 randomside = 0
 gunCapacity = 1
 points = 0
-powerMeter = 0
+
 bullets = []
 intro = True
 
-pygame.mixer.music.play(-1)
+
 dead = False
 intro = False
 run = False
@@ -389,300 +476,10 @@ def respawn():
     powerMeter = 0
     bullets = []
     intro = False
-
-    pygame.mixer.music.play(-1)
+    dead = False
 
     run = True
-    while run and dead == False:
 
-        clock.tick(27)
-        #this is the hitbox for when the zombie collides with the player and the player hasnt shot a bullet or has launched a punch that it should deduct a peice of health and 5 points and move the player back depending on where the zombie is facing
-
-
-        timeForLevel += 0.05
-        
-        
-        
-
-
-        if man.hitbox[1] < zombie.hitbox[1] + zombie.hitbox[3] and man.hitbox[1] + man.hitbox[3] > zombie.hitbox[1]:
-            if man.hitbox[0] + man.hitbox[2] > zombie.hitbox[0] and man.hitbox[0] < zombie.hitbox[0] + zombie.hitbox[2] and man.punchislaunched == False and zombie.visible == True and zombie.velo > 0 and man.x > zombie.x:
-                man.x += 15
-                pygame.time.delay(10)
-                points -= 5
-                man.hit()
-
-        if man.hitbox[1] < zombie.hitbox[1] + zombie.hitbox[3] and man.hitbox[1] + man.hitbox[3] > zombie.hitbox[1]:
-            if man.hitbox[0] + man.hitbox[2] > zombie.hitbox[0] and man.hitbox[0] < zombie.hitbox[0] + zombie.hitbox[2] and man.punchislaunched == False and zombie.visible == True and zombie.velo > 0 and man.x < zombie.x:
-                man.x -= 15
-                pygame.time.delay(10)
-                points -= 5
-                man.hit()
-
-        if man.hitbox[1] < zombie.hitbox[1] + zombie.hitbox[3] and man.hitbox[1] + man.hitbox[3] > zombie.hitbox[1]:
-            if man.hitbox[0] + man.hitbox[2] > zombie.hitbox[0] and man.hitbox[0] < zombie.hitbox[0] + zombie.hitbox[2] and man.punchislaunched == False and zombie.visible == True and zombie.velo < 0 and man.x <= zombie.x:
-                man.x -= 15
-                pygame.time.delay(10)
-                points -= 5
-                man.hit()
-
-        if man.hitbox[1] < zombie.hitbox[1] + zombie.hitbox[3] and man.hitbox[1] + man.hitbox[3] > zombie.hitbox[1]:
-            if man.hitbox[0] + man.hitbox[2] > zombie.hitbox[0] and man.hitbox[0] < zombie.hitbox[0] + zombie.hitbox[2] and man.punchislaunched == False and zombie.visible == True and zombie.velo < 0 and man.x > zombie.x:
-                man.x += 15
-                pygame.time.delay(10)
-                points -= 5
-                man.hit()
-
-        
-
-        #this hitbox detects if the player is touching the zombie whilst punching it
-        if man.hitbox[1] < zombie.hitbox[1] + zombie.hitbox[3] and man.hitbox[1] + man.hitbox[3] > zombie.hitbox[1]:
-            if man.hitbox[0] + man.hitbox[2] > zombie.hitbox[0] and man.hitbox[0] < zombie.hitbox[0] + zombie.hitbox[2] and man.punchislaunched == True and zombie.visible == True:
-                if zombie.velo < 0 and zombie.x < man.x:
-                    zombie.x = zombie.x - 15
-                    zombie.hit()
-                    points += 5
-                if zombie.velo < 0 and zombie.x > man.x:
-                    zombie.x = zombie.x + 15
-                    zombie.hit()
-                    points += 5
-                if zombie.velo > 0 and zombie.x > man.x:
-                    zombie.x = zombie.x + 15
-                    zombie.hit()
-                    points += 5
-                if zombie.velo > 0 and zombie.x < man.x:
-                    zombie.x = zombie.x - 15
-                    zombie.hit()
-                    points += 5
-
-        #this is the hitbox for when the zombie collides with the player and the player hasnt shot a bullet or has launched a punch that it should deduct a peice of health and 5 points and move the player back depending on where the zombie is facing
-        if man.hitbox[1] < zombie1.hitbox[1] + zombie1.hitbox[3] and man.hitbox[1] + man.hitbox[3] > zombie1.hitbox[1]:
-            if man.hitbox[0] + man.hitbox[2] > zombie1.hitbox[0] and man.hitbox[0] < zombie1.hitbox[0] + zombie1.hitbox[2] and man.punchislaunched == False and zombie1.visible == True and zombie.velo > 0 and man.x > zombie1.x:
-                man.x += 15
-                pygame.time.delay(10)
-                points -= 5
-                man.hit()
-
-        if man.hitbox[1] < zombie1.hitbox[1] + zombie1.hitbox[3] and man.hitbox[1] + man.hitbox[3] > zombie1.hitbox[1]:
-            if man.hitbox[0] + man.hitbox[2] > zombie1.hitbox[0] and man.hitbox[0] < zombie1.hitbox[0] + zombie1.hitbox[2] and man.punchislaunched == False and zombie1.visible == True and zombie.velo > 0 and man.x < zombie1.x:
-                man.x += 15
-                pygame.time.delay(10)
-                points -= 5
-                man.hit()
-                
-        #same thing here expet its for when the zombie is facing left       
-        if man.hitbox[1] < zombie1.hitbox[1] + zombie1.hitbox[3] and man.hitbox[1] + man.hitbox[3] > zombie1.hitbox[1]:
-            if man.hitbox[0] + man.hitbox[2] > zombie1.hitbox[0] and man.hitbox[0] < zombie1.hitbox[0] + zombie1.hitbox[2] and man.punchislaunched == False and zombie1.visible == True and zombie1.velo < 0 and man.x < zombie1.x:
-                man.x -= 15
-                pygame.time.delay(10)
-                points -= 5
-                man.hit()
-
-        if man.hitbox[1] < zombie1.hitbox[1] + zombie1.hitbox[3] and man.hitbox[1] + man.hitbox[3] > zombie1.hitbox[1]:
-            if man.hitbox[0] + man.hitbox[2] > zombie1.hitbox[0] and man.hitbox[0] < zombie1.hitbox[0] + zombie1.hitbox[2] and man.punchislaunched == False and zombie1.visible == True and zombie1.velo < 0 and man.x > zombie1.x:
-                man.x -= 15
-                pygame.time.delay(10)
-                points -= 5
-                man.hit()
-
-        #this hitbox detects if the player is touching the zombie whilst punching it
-        if man.hitbox[1] < zombie1.hitbox[1] + zombie1.hitbox[3] and man.hitbox[1] + man.hitbox[3] > zombie1.hitbox[1]:
-            if man.hitbox[0] + man.hitbox[2] > zombie1.hitbox[0] and man.hitbox[0] < zombie1.hitbox[0] + zombie1.hitbox[2] and man.punchislaunched == True and zombie1.visible == True:
-                    if zombie1.velo < 0 and zombie1.x < man.x:
-                        zombie1.x = zombie1.x - 15
-                        zombie1.hit()
-                        points += 1
-                    if zombie1.velo < 0 and zombie1.x > man.x:
-                        zombie1.x = zombie1.x + 15
-                        zombie1.hit()
-                        points += 1
-                    if zombie1.velo > 0 and zombie1.x > man.x:
-                        zombie1.x = zombie1.x + 15
-                        zombie1.hit()
-                        points += 1
-                    if zombie1.velo > 0 and zombie1.x < man.x:
-                        zombie1.x = zombie1.x - 15
-                        zombie1.hit()
-                        points += 1
-                        
-
-        #this tels it to shoot one bullet at a time instead of sending a group of bullets to the zombie
-        if gunCapacity > 0:
-            gunCapacity += 1
-        if gunCapacity> 10:
-            gunCapacity = 0
-
-        #this tels it to close the programe if you press the big red cross at the top right
-        for event in pygame.event.get():
-
-
-            if event.type == pygame.QUIT:
-                run = False
-           
-        #this sets the collision for when the zombie  touches the bullet
-        for bullet in bullets:
-            if bullet.y - bullet.radius < zombie.hitbox[1] + zombie.hitbox[3] and bullet.y + bullet.radius > zombie.hitbox[1]:
-                if bullet.x + bullet.radius > zombie.hitbox[0] and bullet.x - bullet.radius < zombie.hitbox[0] + zombie.hitbox[2] and zombie.visible == True:
-                    if zombie.velo < 0 and zombie.x < man.x:
-                        zombie.x = zombie.x - 15
-                        zombie.hit()
-                        points += 1
-                        bullets.pop(bullets.index(bullet))
-                    if zombie.velo < 0 and zombie.x > man.x:
-                        zombie.x = zombie.x + 15
-                        zombie.hit()
-                        points += 1
-                        bullets.pop(bullets.index(bullet))
-                    if zombie.velo > 0 and zombie.x > man.x:
-                        zombie.x = zombie.x + 15
-                        zombie.hit()
-                        points += 1
-                        bullets.pop(bullets.index(bullet))
-                    if zombie.velo > 0 and zombie.x < man.x:
-                        zombie.x = zombie.x - 15
-                        zombie.hit()
-                        points += 1
-                        bullets.pop(bullets.index(bullet))
-
-                    
-                    
-                        
-
-            #this tells the bullet to delete itself if it touches the the end of the screen
-            if bullet.x < 600 and bullet.x > 0:
-                bullet.x += bullet.velo
-            else:
-                bullets.pop(bullets.index(bullet))
-
-        
-        #this sets the collision for when the zombie  touches the bullet
-        for bullet in bullets:
-            if bullet.y - bullet.radius < zombie1.hitbox[1] + zombie1.hitbox[3] and bullet.y + bullet.radius > zombie1.hitbox[1]:
-                if bullet.x + bullet.radius > zombie1.hitbox[0] and bullet.x - bullet.radius < zombie1.hitbox[0] + zombie1.hitbox[2] and zombie1.visible == True:
-                    if zombie1.velo < 0 and zombie1.x < man.x:
-                        zombie1.x = zombie1.x - 15
-                        zombie1.hit()
-                        points += 1
-                        bullets.pop(bullets.index(bullet))
-                    if zombie1.velo < 0 and zombie1.x > man.x:
-                        zombie1.x = zombie1.x + 15
-                        zombie1.hit()
-                        points += 1
-                        bullets.pop(bullets.index(bullet))
-                    if zombie1.velo > 0 and zombie1.x > man.x:
-                        zombie1.x = zombie1.x + 15
-                        zombie1.hit()
-                        points += 1
-                        bullets.pop(bullets.index(bullet))
-                    if zombie1.velo > 0 and zombie1.x < man.x:
-                        zombie1.x = zombie1.x - 15
-                        zombie1.hit()
-                        points += 1
-                        bullets.pop(bullets.index(bullet))
-            #this tells the bullet to delete itself if it touches the the end of the screen
-            if bullet.x < 600 and bullet.x > 0:
-                bullet.x += bullet.velo
-            else:
-                bullets.pop(bullets.index(bullet))
-
-        
-        if timeForLevel > 20:
-            velotimeser = 1.0002
-            zombie.velo = zombie.velo * velotimeser
-            zombie1.velo = zombie1.velo * velotimeser
-
-
-        
-
-        keys = pygame.key.get_pressed()
-
-        #these are the keaboard bings for all the functions
-        if keys[pygame.K_LEFT] and man.x > man.velo:
-            man.x -= man.velo
-            man.right = False
-            man.left = True
-            man.Idlecount = 0
-            man.guncount = 0
-            man.gunisfired = False
-            man.standing = False
-        elif keys[pygame.K_RIGHT] and man.x < 600 - man.width - man.velo:
-            man.x += man.velo
-            man.right = True
-            man.left = False
-            man.Idlecount = 0
-            man.guncount = 0
-            man.gunisfired = False
-            man.standing = False
-        elif keys[pygame.K_SPACE]:
-            man.gunisfired = True
-            man.isIdle = False
-            man.standing = True
-            man.Idlecount = 0
-            man.punchislaunched = False
-            man.walkcount = 0
-        
-        elif keys[pygame.K_x]:
-            man.gunisfired = False
-            man.isIdle = False
-            man.standing = True
-            man.Idlecount = 0
-            man.guncount = 0
-            man.punchislaunched = True
-        else:
-            man.walkcount = 0
-            man.isIdle = True
-            man.guncount = 0
-            man.gunisfired = False
-            man.standing = True
-            man.punchislaunched = False
-            man.punchcount = 0
-        if keys[pygame.K_SPACE] and gunCapacity == 0:
-            
-            if man.left:
-                facing = -1
-            else:
-                facing = 1
-            if len(bullets) < 5:
-                bullets.append(Projectile(round(man.x + man.width //2), round(man.y + man.height//2), 6, (0,0,0), facing))
-                bulletSound.play()
-            gunCapacity = 1
-
-        #this tells the zombie to respawn when it is dead
-        if zombie.visible == False:
-            randomside = random.randint(1,4)
-            if randomside == 1:
-                zombie.x = 20
-            if randomside ==2:
-                zombie.x = 580
-            if randomside ==3:
-                zombie.x = 580
-                zombie1.x = 520
-                zombie1.visible = True
-                zombie1.health = 10
-                zombie1.draw(screen)
-            if randomside == 4:
-                zombie.x = 20
-                zombie1.x = 80
-                zombie1.visible = True
-                zombie1.health = 10
-                zombie1.draw(screen)
-
-            zombie.visible = True
-            zombie.health = 10
-            zombie.draw(screen)
-        print(randomside)
-
- 
-
-    
-    
-       
-    redrawGameWindow()
-    Timetext = font.render('Time elapsed:' + str(round(timeForLevel,1)), 1, (255,251,0))
-    screen.blit(Timetext, (20, 10))
-    
-
-    pygame.display.update()
 
 
 
@@ -705,12 +502,12 @@ def dead():
         TextRect.center = ((display_width / 2), (display_height / 2))
         screen.blit(TextSurf, TextRect)
 
-        button("LETS PLAY!", 20, 450, 115, 50, green, bright_green, respawn)
-        button("Quit", 250, 450, 100, 50, red, bright_red, quitgame)
+        button("Play again", 20, 450, 115, 50, green, bright_green, respawn)
+        button("Quit", 490, 450, 100, 50, red, bright_red, quitgame)
 
         pygame.display.update()
         clock.tick(15)
-
+dripvelo = 5
 def game_intro():
 
     while intro:
@@ -736,28 +533,59 @@ def game_intro():
 
 
 def redrawGameWindow():
+    global level
     #this draws the characters the background and the text onto the screen
     
     screen.blit(bg, (0,-100))
     text = font.render('Points:' + str(points), 1, (255,251,0))
-    screen.blit(text, (390, 10))
+    ZombieText = font.render('Zombies Killed:' + str(zombiecount), 1, (255,251,0))
+    screen.blit(text, (430, 10))
+    Timetext = font.render('Time elapsed:' + str(round(timeForLevel,1)), 1, (255,251,0))
+    screen.blit(Timetext, (20, 10))
+    ZombieText = font.render('Zombies Killed:' + str(zombiecount), 1, (255,251,0))
+    screen.blit(ZombieText, (20, 40))
     man.draw(screen)
     zombie.draw(screen)
     zombie1.draw(screen)
-
+    zombie2.draw(screen)
+    
+    
     for bullet in bullets:
         bullet.draw(screen)
     pygame.display.update()    
+   
+
+    Falling_Lava.draw(screen)
+    Falling_Lava1.draw(screen)    
     pygame.display.update()
+
+    if zombiecount == 85:
+        level = 2
+        text2 = fontforScore.render('Level '+ str(level), 2, (255,255,255))
+        screen.blit(text2, (150,300))
+
+    if zombiecount == 200:
+        level = 3
+        text2 = fontforScore.render('Level '+ str(level), 2, (255,255,255))
+        screen.blit(text2, (250,250))
+    
+    if level >= 2:
+        man.drawP(screen)
+    pygame.display.update()
+
 #the code bellow sets any important varibles that coudnt be put in anany of the classes
 
 velotimeser = 1
 timeForLevel = 0
 font = pygame.font.SysFont('comicsans', 30, True)
+fontforScore = pygame.font.SysFont('comicsans', 115)
 man = Player(300, 508, 64, 64)
 zombie = Enemy(100, 508, 64, 64, 450)
 zombie1 = Enemy1(100, 508, 64, 64, 450)
-
+zombie2 = Enemy2(100, 508, 64, 64, 450)
+Falling_Lava = Falling_Lava(300, -30, 64, 64)
+Falling_Lava1 = Falling_Lava1(25, -50, 64, 64)
+randomshow = 1
 randomside = 0
 gunCapacity = 1
 points = 0
@@ -765,7 +593,7 @@ powerMeter = 0
 bullets = []
 intro = True
 game_intro()
-pygame.mixer.music.play(-1)
+
 
 
  # in seconds
@@ -781,7 +609,8 @@ while run:
     timeForLevel += 0.05
     
     
-    
+
+
 
 
     if man.hitbox[1] < zombie.hitbox[1] + zombie.hitbox[3] and man.hitbox[1] + man.hitbox[3] > zombie.hitbox[1]:
@@ -819,19 +648,44 @@ while run:
         if man.hitbox[0] + man.hitbox[2] > zombie.hitbox[0] and man.hitbox[0] < zombie.hitbox[0] + zombie.hitbox[2] and man.punchislaunched == True and zombie.visible == True:
             if zombie.velo < 0 and zombie.x < man.x:
                 zombie.x = zombie.x - 15
-                zombie.hit()
+                if zombie.health > 0 and isinPowerStrike == False:
+                    zombie.health -= 1
+                elif zombie.health > 0 and isinPowerStrike == True:
+                    zombie.health -= 5
+                    powerMeter -= 1
+                else:
+                    zombie.visible = False
                 points += 5
             if zombie.velo < 0 and zombie.x > man.x:
                 zombie.x = zombie.x + 15
-                zombie.hit()
+                if zombie.health > 0 and isinPowerStrike == False:
+                    zombie.health -= 1
+                elif zombie.health > 0 and isinPowerStrike == True:
+                    zombie.health -= 5
+                    powerMeter -= 1
+                else:
+                    zombie.visible = False
                 points += 5
             if zombie.velo > 0 and zombie.x > man.x:
                 zombie.x = zombie.x + 15
-                zombie.hit()
+                if zombie.health > 0 and isinPowerStrike == False:
+                    zombie.health -= 1
+                elif zombie.health > 0 and isinPowerStrike == True:
+                    zombie.health -= 5
+                    powerMeter -= 1
+                else:
+                    zombie.visible = False
                 points += 5
             if zombie.velo > 0 and zombie.x < man.x:
                 zombie.x = zombie.x - 15
-                zombie.hit()
+                if zombie.health > 0 and isinPowerStrike == False:
+                    zombie.health -= 1
+                elif zombie.health > 0 and isinPowerStrike == True:
+                    zombie.health -= 5
+                    powerMeter -= 1
+                else:
+                    zombie.visible = False
+
                 points += 5
 
     #this is the hitbox for when the zombie collides with the player and the player hasnt shot a bullet or has launched a punch that it should deduct a peice of health and 5 points and move the player back depending on where the zombie is facing
@@ -869,19 +723,125 @@ while run:
         if man.hitbox[0] + man.hitbox[2] > zombie1.hitbox[0] and man.hitbox[0] < zombie1.hitbox[0] + zombie1.hitbox[2] and man.punchislaunched == True and zombie1.visible == True:
                 if zombie1.velo < 0 and zombie1.x < man.x:
                     zombie1.x = zombie1.x - 15
-                    zombie1.hit()
+                    if zombie1.health > 0 and isinPowerStrike == False:
+                        zombie1.health -= 1
+                    elif zombie1.health > 0 and isinPowerStrike == True:
+                        zombie1.health -= 5
+                        powerMeter -= 1
+                    else:
+                        zombie1.visible = False
+                        zombiecount += 1
                     points += 1
                 if zombie1.velo < 0 and zombie1.x > man.x:
                     zombie1.x = zombie1.x + 15
-                    zombie1.hit()
+                    if zombie1.health > 0 and isinPowerStrike == False:
+                        zombie1.health -= 1
+                    elif zombie1.health > 0 and isinPowerStrike == True:
+                        zombie1.health -= 5
+                        powerMeter -= 1
+                    else:
+                        zombie1.visible = False
+                        zombiecount += 1
                     points += 1
                 if zombie1.velo > 0 and zombie1.x > man.x:
                     zombie1.x = zombie1.x + 15
-                    zombie1.hit()
+                    if zombie1.health > 0 and isinPowerStrike == False:
+                        zombie1.health -= 1
+                    elif zombie1.health > 0 and isinPowerStrike == True:
+                        zombie1.health -= 5
+                        powerMeter -= 1
+                    else:
+                        zombie1.visible = False
+                        zombiecount += 1
                     points += 1
                 if zombie1.velo > 0 and zombie1.x < man.x:
                     zombie1.x = zombie1.x - 15
-                    zombie1.hit()
+                    if zombie1.health > 0 and isinPowerStrike == False:
+                        zombie1.health -= 1
+                    elif zombie1.health > 0 and isinPowerStrike == True:
+                        zombie1.health -= 5
+                        powerMeter -= 1
+                    else:
+                        zombie1.visible = False
+                        zombiecount += 1
+                    points += 1
+
+
+    if man.hitbox[1] < zombie2.hitbox[1] + zombie2.hitbox[3] and man.hitbox[1] + man.hitbox[3] > zombie2.hitbox[1]:
+        if man.hitbox[0] + man.hitbox[2] > zombie2.hitbox[0] and man.hitbox[0] < zombie2.hitbox[0] + zombie2.hitbox[2] and man.punchislaunched == False and zombie2.visible == True and zombie2.velo > 0 and man.x > zombie2.x:
+            man.x += 15
+            pygame.time.delay(10)
+            points -= 5
+            man.hit()
+
+    if man.hitbox[1] < zombie2.hitbox[1] + zombie2.hitbox[3] and man.hitbox[1] + man.hitbox[3] > zombie2.hitbox[1]:
+        if man.hitbox[0] + man.hitbox[2] > zombie2.hitbox[0] and man.hitbox[0] < zombie2.hitbox[0] + zombie2.hitbox[2] and man.punchislaunched == False and zombie2.visible == True and zombie2.velo > 0 and man.x < zombie2.x:
+            man.x += 15
+            pygame.time.delay(10)
+            points -= 5
+            man.hit()
+            
+    #same thing here expet its for when the zombie is facing left       
+    if man.hitbox[1] < zombie2.hitbox[1] + zombie2.hitbox[3] and man.hitbox[1] + man.hitbox[3] > zombie2.hitbox[1]:
+        if man.hitbox[0] + man.hitbox[2] > zombie2.hitbox[0] and man.hitbox[0] < zombie2.hitbox[0] + zombie2.hitbox[2] and man.punchislaunched == False and zombie2.visible == True and zombie2.velo < 0 and man.x < zombie2.x:
+            man.x -= 15
+            pygame.time.delay(10)
+            points -= 5
+            man.hit()
+
+    if man.hitbox[1] < zombie2.hitbox[1] + zombie2.hitbox[3] and man.hitbox[1] + man.hitbox[3] > zombie2.hitbox[1]:
+        if man.hitbox[0] + man.hitbox[2] > zombie2.hitbox[0] and man.hitbox[0] < zombie2.hitbox[0] + zombie2.hitbox[2] and man.punchislaunched == False and zombie2.visible == True and zombie2.velo < 0 and man.x > zombie2.x:
+            man.x -= 15
+            pygame.time.delay(10)
+            points -= 5
+            man.hit()
+
+    #this hitbox detects if the player is touching the zombie whilst punching it
+    if man.hitbox[1] < zombie2.hitbox[1] + zombie2.hitbox[3] and man.hitbox[1] + man.hitbox[3] > zombie2.hitbox[1]:
+        if man.hitbox[0] + man.hitbox[2] > zombie2.hitbox[0] and man.hitbox[0] < zombie2.hitbox[0] + zombie2.hitbox[2] and man.punchislaunched == True and zombie2.visible == True:
+                if zombie2.velo < 0 and zombie2.x < man.x:
+                    zombie2.x = zombie2.x - 15
+                    if zombie2.health > 0 and isinPowerStrike == False:
+                        zombie2.health -= 1
+                    elif zombie2.health > 0 and isinPowerStrike == True:
+                        zombie2.health -= 5
+                        powerMeter -= 1
+                    else:
+                        zombie2.visible = False
+                        zombiecount += 1
+                    points += 1
+                if zombie2.velo < 0 and zombie2.x > man.x:
+                    zombie2.x = zombie2.x + 15
+                    if zombie2.health > 0 and isinPowerStrike == False:
+                        zombie2.health -= 1
+                    elif zombie2.health > 0 and isinPowerStrike == True:
+                        zombie2.health -= 5
+                        powerMeter -= 1
+                    else:
+                        zombie2.visible = False
+                        zombiecount += 1
+                    points += 1
+                if zombie2.velo > 0 and zombie2.x > man.x:
+                    zombie1.x = zombie1.x + 15
+                    if zombie2.health > 0 and isinPowerStrike == False:
+                        zombie2.health -= 1
+                    elif zombie2.health > 0 and isinPowerStrike == True:
+                        zombie2.health -= 5
+                        powerMeter -= 1
+                    else:
+                        zombie2.visible = False
+                        zombiecount += 1
+                    points += 1
+                if zombie2.velo > 0 and zombie1.x < man.x:
+                    zombie2.x = zombie2.x - 15
+                    if zombie2.health > 0 and isinPowerStrike == False:
+                        zombie2.health -= 1
+                    elif zombie2.health > 0 and isinPowerStrike == True:
+                        zombie2.health -= 5
+                        powerMeter -= 1
+                    else:
+                        zombie2.visible = False
+                        zombiecount += 1
                     points += 1
                     
 
@@ -904,22 +864,46 @@ while run:
             if bullet.x + bullet.radius > zombie.hitbox[0] and bullet.x - bullet.radius < zombie.hitbox[0] + zombie.hitbox[2] and zombie.visible == True:
                 if zombie.velo < 0 and zombie.x < man.x:
                     zombie.x = zombie.x - 15
-                    zombie.hit()
+                    if zombie.health > 0 and powerMeter != 10:
+                        zombie.health -= 1
+                    elif zombie.health > 0 and powerMeter == 10:
+                        zombie.health -= 5
+                        powerMeter -= 1
+                    else:
+                        zombie.visible = False
                     points += 1
                     bullets.pop(bullets.index(bullet))
                 if zombie.velo < 0 and zombie.x > man.x:
                     zombie.x = zombie.x + 15
-                    zombie.hit()
+                    if zombie.health > 0 and powerMeter != 10:
+                        zombie.health -= 1
+                    elif zombie.health > 0 and powerMeter == 10:
+                        zombie.health -= 5
+                        powerMeter -= 1
+                    else:
+                        zombie.visible = False
                     points += 1
                     bullets.pop(bullets.index(bullet))
                 if zombie.velo > 0 and zombie.x > man.x:
                     zombie.x = zombie.x + 15
-                    zombie.hit()
+                    if zombie.health > 0 and powerMeter != 10:
+                        zombie.health -= 1
+                    elif zombie.health > 0 and powerMeter == 10:
+                        zombie.health -= 5
+                        powerMeter -= 1
+                    else:
+                        zombie.visible = False
                     points += 1
                     bullets.pop(bullets.index(bullet))
                 if zombie.velo > 0 and zombie.x < man.x:
                     zombie.x = zombie.x - 15
-                    zombie.hit()
+                    if zombie.health > 0 and powerMeter != 10:
+                        zombie.health -= 1
+                    elif zombie.health > 0 and powerMeter == 10:
+                        zombie.health -= 5
+                        powerMeter -= 1
+                    else:
+                        zombie.visible = False
                     points += 1
                     bullets.pop(bullets.index(bullet))
 
@@ -940,22 +924,98 @@ while run:
             if bullet.x + bullet.radius > zombie1.hitbox[0] and bullet.x - bullet.radius < zombie1.hitbox[0] + zombie1.hitbox[2] and zombie1.visible == True:
                 if zombie1.velo < 0 and zombie1.x < man.x:
                     zombie1.x = zombie1.x - 15
-                    zombie1.hit()
+                    if zombie1.health > 0 and isinPowerStrike == False:
+                        zombie1.health -= 1
+                    elif zombie1.health > 0 and isinPowerStrike == True:
+                        zombie1.health -= 5
+                        powerMeter -= 1
+                    else:
+                        zombie1.visible = False
                     points += 1
                     bullets.pop(bullets.index(bullet))
                 if zombie1.velo < 0 and zombie1.x > man.x:
                     zombie1.x = zombie1.x + 15
-                    zombie1.hit()
+                    if zombie1.health > 0 and isinPowerStrike == False:
+                        zombie1.health -= 1
+                    elif zombie1.health > 0 and isinPowerStrike == True:
+                        zombie1.health -= 5
+                        powerMeter -= 1
+                    else:
+                        zombie1.visible = False
                     points += 1
                     bullets.pop(bullets.index(bullet))
                 if zombie1.velo > 0 and zombie1.x > man.x:
                     zombie1.x = zombie1.x + 15
-                    zombie1.hit()
+                    if zombie1.health > 0 and isinPowerStrike == False:
+                        zombie1.health -= 1
+                    elif zombie1.health > 0 and isinPowerStrike == True:
+                        zombie1.health -= 5
+                        powerMeter -= 1
+                    else:
+                        zombie1.visible = False
                     points += 1
                     bullets.pop(bullets.index(bullet))
                 if zombie1.velo > 0 and zombie1.x < man.x:
                     zombie1.x = zombie1.x - 15
-                    zombie1.hit()
+                    if zombie1.health > 0 and isinPowerStrike == False:
+                        zombie1.health -= 1
+                    elif zombie1.health > 0 and isinPowerStrike == True:
+                        zombie1.health -= 5
+                        powerMeter -= 1
+                    else:
+                        zombie1.visible = False
+                    points += 1
+                    bullets.pop(bullets.index(bullet))
+
+
+
+
+
+    for bullet in bullets:
+        if bullet.y - bullet.radius < zombie2.hitbox[1] + zombie2.hitbox[3] and bullet.y + bullet.radius > zombie2.hitbox[1]:
+            if bullet.x + bullet.radius > zombie2.hitbox[0] and bullet.x - bullet.radius < zombie2.hitbox[0] + zombie2.hitbox[2] and zombie2.visible == True:
+                if zombie2.velo < 0 and zombie2.x < man.x:
+                    zombie2.x = zombie2.x - 15
+                    if zombie2.health > 0 and isinPowerStrike == False:
+                        zombie2.health -= 1
+                    elif zombie2.health > 0 and isinPowerStrike == True:
+                        zombie2.health -= 5
+                        powerMeter -= 1
+                    else:
+                        zombie2.visible = False
+                    points += 1
+                    bullets.pop(bullets.index(bullet))
+                if zombie2.velo < 0 and zombie2.x > man.x:
+                    zombie2.x = zombie2.x + 15
+                    if zombie2.health > 0 and isinPowerStrike == False:
+                        zombie2.health -= 1
+                    elif zombie2.health > 0 and isinPowerStrike == True:
+                        zombie2.health -= 5
+                        powerMeter -= 1
+                    else:
+                        zombie2.visible = False
+                    points += 1
+                    bullets.pop(bullets.index(bullet))
+                if zombie2.velo > 0 and zombie2.x > man.x:
+                    zombie2.x = zombie2.x + 15
+                    if zombie2.health > 0 and isinPowerStrike == False:
+                        zombie2.health -= 1
+                    elif zombie2.health > 0 and isinPowerStrike == True:
+                        zombie2.health -= 5
+                        powerMeter -= 1
+                    else:
+                        zombie2.visible = False
+                    points += 1
+                    bullets.pop(bullets.index(bullet))
+                if zombie2.velo > 0 and zombie2.x < man.x:
+                    zombie2.x = zombie2.x - 15
+                    if zombie2.health > 0 and isinPowerStrike == False:
+                        zombie2.health -= 1
+                    elif zombie2.health > 0 and isinPowerStrike == True:
+                        zombie2.health -= 5
+                        powerMeter -= 1
+                    else:
+                        zombie2.visible = False
                     points += 1
                     bullets.pop(bullets.index(bullet))
         #this tells the bullet to delete itself if it touches the the end of the screen
@@ -964,14 +1024,40 @@ while run:
         else:
             bullets.pop(bullets.index(bullet))
 
+
+    if Falling_Lava.y - Falling_Lava.width < man.hitbox[1] + man.hitbox[3] and Falling_Lava.y + Falling_Lava.width > man.hitbox[1]:
+        if Falling_Lava.x + Falling_Lava.width > Falling_Lava.x and Falling_Lava.width < man.hitbox[0] + man.hitbox[2]:
+            pygame.time.delay(10)
+            points -= 5
+            man.hit()
+
+    if Falling_Lava1.y - Falling_Lava1.width < man.hitbox[1] + man.hitbox[3] and Falling_Lava1.y + Falling_Lava1.width > man.hitbox[1]:
+        if Falling_Lava1.x + Falling_Lava1.width > Falling_Lava1.x and Falling_Lava1.width < man.hitbox[0] + man.hitbox[2]:
+            pygame.time.delay(10)
+            points -= 5
+            man.hit()
+
     
     if timeForLevel > 20:
         velotimeser = 1.0002
         zombie.velo = zombie.velo * velotimeser
         zombie1.velo = zombie1.velo * velotimeser
 
-
+    if level == 3:
     
+        Falling_Lava.y = Falling_Lava.y + Falling_Lava.velo
+        if Falling_Lava.y > display_height:
+            Falling_Lava.x = random.randrange(5,595)
+            Falling_Lava.y = -25
+
+            randomshow = random.randint(1,4)
+        
+            
+
+        Falling_Lava1.y = Falling_Lava1.y + Falling_Lava1.velo
+        if Falling_Lava1.y > display_height:
+            Falling_Lava1.x = random.randrange(5,595)
+            Falling_Lava1.y = -25
 
     keys = pygame.key.get_pressed()
 
@@ -1027,22 +1113,26 @@ while run:
         gunCapacity = 1
 
     #this tells the zombie to respawn when it is dead
-    if zombie.visible == False:
+    if zombie.visible == False and level == 1:
         randomside = random.randint(1,4)
         if randomside == 1:
             zombie.x = 20
+            zombiecount += 1
         if randomside ==2:
             zombie.x = 580
+            zombiecount += 1
         if randomside ==3:
             zombie.x = 580
             zombie1.x = 520
             zombie1.visible = True
+            zombiecount += 1
             zombie1.health = 10
             zombie1.draw(screen)
         if randomside == 4:
             zombie.x = 20
             zombie1.x = 80
             zombie1.visible = True
+            zombiecount += 1
             zombie1.health = 10
             zombie1.draw(screen)
 
@@ -1051,21 +1141,333 @@ while run:
         zombie.draw(screen)
     print(randomside)
 
-    if man.health == 0:
+    if zombie.visible == False and level == 2 and isinPowerStrike == False and zombiecountForLevel2 >= 10:
+        powerMeter += 1
+        randomside = random.randint(1,6)
+        if randomside == 1:
+            zombie.x = 20
+            zombiecount += 1
+            powerMeter += 1
+        if randomside ==2:
+            zombie.x = 580
+            zombiecount += 1
+            powerMeter += 1
+        if randomside ==3:
+            zombie.x = 580
+            zombie1.x = 520
+            zombie1.visible = True
+            zombiecount += 1
+            powerMeter += 1
+            zombie1.health = 10
+            zombie1.draw(screen)
+        if randomside == 4:
+            zombie.x = 20
+            zombie1.x = 80
+            zombie1.visible = True
+            zombiecount += 1
+            powerMeter += 1
+            zombie1.health = 10
+            zombie1.draw(screen)
+
+        if randomside == 5:
+            zombie.x = 20
+            zombie1.x = 80
+            zombie2.x = 140
+            zombie1.visible = True
+            zombie2.visible = True
+            zombiecount += 1
+            powerMeter += 1
+            zombie1.health = 10
+            zombie1.draw(screen)
+            zombie2.health = 10
+            zombie2.draw(screen)
+        if randomside == 6:
+            zombie.x = 580
+            zombie1.x = 520
+            zombie2.x = 460
+            zombie1.visible = True
+            zombie2.visible = True
+            zombiecount += 1
+            powerMeter += 1
+            zombie1.health = 10
+            zombie1.draw(screen)
+            zombie2.health = 10
+            zombie2.draw(screen)
+        
+        zombie.visible = True
+        zombie.health = 10
+        zombie.draw(screen)
+    print(randomside)
+
+    if zombie.visible == False and level == 2 and isinPowerStrike == True and zombiecountForLevel2 >= 10:
+        randomside = random.randint(1,6)
+        
+        if randomside == 1:
+            zombie.x = 20
+            zombiecount += 1
+            
+        if randomside ==2:
+            zombie.x = 580
+            zombiecount += 1
+            
+        if randomside ==3:
+            zombie.x = 580
+            zombie1.x = 520
+            zombie1.visible = True
+            zombiecount += 1
+            
+            zombie1.health = 10
+            zombie1.draw(screen)
+        if randomside == 4:
+            zombie.x = 20
+            zombie1.x = 80
+            zombie1.visible = True
+            zombiecount += 1
+            
+            zombie1.health = 10
+            zombie1.draw(screen)
+        if randomside == 5:
+            zombie.x = 20
+            zombie1.x = 80
+            zombie2.x = 140
+            zombie1.visible = True
+            zombie2.visible = True
+            zombiecount += 1
+            powerMeter += 1
+            zombie1.health = 10
+            zombie1.draw(screen)
+            zombie2.health = 10
+            zombie2.draw(screen)
+        if randomside == 6:
+            zombie.x = 580
+            zombie1.x = 520
+            zombie2.x = 460
+            zombie1.visible = True
+            zombie2.visible = True
+            zombiecount += 1
+            powerMeter += 1
+            zombie1.health = 10
+            zombie1.draw(screen)
+            zombie2.health = 10
+            zombie2.draw(screen)
+
+        zombie.visible = True
+        zombie.health = 10
+        zombie.draw(screen)
+    print(randomside)
+
+    if zombie.visible == False and level == 2 and isinPowerStrike == False:
+        powerMeter += 1
+        randomside = random.randint(1,4)
+        if randomside == 1:
+            zombie.x = 20
+            zombiecount += 1
+            zombiecountForLevel2 += 1
+            powerMeter += 1
+        if randomside ==2:
+            zombie.x = 580
+            zombiecount += 1
+            zombiecountForLevel2 += 1
+            powerMeter += 1
+        if randomside ==3:
+            zombie.x = 580
+            zombie1.x = 520
+            zombie1.visible = True
+            zombiecount += 1
+            zombiecountForLevel2 += 1
+            powerMeter += 1
+            zombie1.health = 10
+            zombie1.draw(screen)
+        if randomside == 4:
+            zombie.x = 20
+            zombie1.x = 80
+            zombie1.visible = True
+            zombiecount += 1
+            zombiecountForLevel2 += 1
+            powerMeter += 1
+            zombie1.health = 10
+            zombie1.draw(screen)
+
+
+        
+        zombie.visible = True
+        zombie.health = 10
+        zombie.draw(screen)
+    print(randomside)
+
+    if zombie.visible == False and level == 2 and isinPowerStrike == True:
+        randomside = random.randint(1,4)
+        
+        if randomside == 1:
+            zombie.x = 20
+            zombiecount += 1
+            zombiecountForLevel2 += 1
+        if randomside ==2:
+            zombie.x = 580
+            zombiecount += 1
+            zombiecountForLevel2 += 1
+        if randomside ==3:
+            zombie.x = 580
+            zombie1.x = 520
+            zombie1.visible = True
+            zombiecount += 1
+            zombiecountForLevel2 += 1
+            zombie1.health = 10
+            zombie1.draw(screen)
+        if randomside == 4:
+            zombie.x = 20
+            zombie1.x = 80
+            zombie1.visible = True
+            zombiecount += 1
+            zombiecountForLevel2 += 1
+            zombie1.health = 10
+            zombie1.draw(screen)
+
+
+        zombie.visible = True
+        zombie.health = 10
+        zombie.draw(screen)
+        zombiecountForLevel2 += 1
+    print(randomside)
+
+    
+
+    if powerMeter >= 10:
+        powerMeter = 10
+    if powerMeter == 10:
+        isinPowerStrike = True
+    if powerMeter == 0:
+        isinPowerStrike = False
+    
+
+    if man.health == 0 or dead == True:
         dead()
+
+    
+    if zombie.visible == False and level == 3 and isinPowerStrike == False and zombiecountForLevel2 >= 10:
+        powerMeter += 1
+        randomside = random.randint(1,6)
+        if randomside == 1:
+            zombie.x = 20
+            zombiecount += 1
+            powerMeter += 1
+        if randomside ==2:
+            zombie.x = 580
+            zombiecount += 1
+            powerMeter += 1
+        if randomside ==3:
+            zombie.x = 580
+            zombie1.x = 520
+            zombie1.visible = True
+            zombiecount += 1
+            powerMeter += 1
+            zombie1.health = 10
+            zombie1.draw(screen)
+        if randomside == 4:
+            zombie.x = 20
+            zombie1.x = 80
+            zombie1.visible = True
+            zombiecount += 1
+            powerMeter += 1
+            zombie1.health = 10
+            zombie1.draw(screen)
+
+        if randomside == 5:
+            zombie.x = 20
+            zombie1.x = 80
+            zombie2.x = 140
+            zombie1.visible = True
+            zombie2.visible = True
+            zombiecount += 1
+            powerMeter += 1
+            zombie1.health = 10
+            zombie1.draw(screen)
+            zombie2.health = 10
+            zombie2.draw(screen)
+        if randomside == 6:
+            zombie.x = 580
+            zombie1.x = 520
+            zombie2.x = 460
+            zombie1.visible = True
+            zombie2.visible = True
+            zombiecount += 1
+            powerMeter += 1
+            zombie1.health = 10
+            zombie1.draw(screen)
+            zombie2.health = 10
+            zombie2.draw(screen)
+        
+        zombie.visible = True
+        zombie.health = 10
+        zombie.draw(screen)
+    print(randomside)
+
+    if zombie.visible == False and level == 3 and isinPowerStrike == True and zombiecountForLevel2 >= 10:
+        randomside = random.randint(1,6)
+        
+        if randomside == 1:
+            zombie.x = 20
+            zombiecount += 1
+            
+        if randomside ==2:
+            zombie.x = 580
+            zombiecount += 1
+            
+        if randomside ==3:
+            zombie.x = 580
+            zombie1.x = 520
+            zombie1.visible = True
+            zombiecount += 1
+            
+            zombie1.health = 10
+            zombie1.draw(screen)
+        if randomside == 4:
+            zombie.x = 20
+            zombie1.x = 80
+            zombie1.visible = True
+            zombiecount += 1
+            
+            zombie1.health = 10
+            zombie1.draw(screen)
+        if randomside == 5:
+            zombie.x = 20
+            zombie1.x = 80
+            zombie2.x = 140
+            zombie1.visible = True
+            zombie2.visible = True
+            zombiecount += 1
+            powerMeter += 1
+            zombie1.health = 10
+            zombie1.draw(screen)
+            zombie2.health = 10
+            zombie2.draw(screen)
+        if randomside == 6:
+            zombie.x = 580
+            zombie1.x = 520
+            zombie2.x = 460
+            zombie1.visible = True
+            zombie2.visible = True
+            zombiecount += 1
+            powerMeter += 1
+            zombie1.health = 10
+            zombie1.draw(screen)
+            zombie2.health = 10
+            zombie2.draw(screen)
+
+        zombie.visible = True
+        zombie.health = 10
+        zombie.draw(screen)
+    print(randomside)
 
 
     
+
             
 
     
     
        
     redrawGameWindow()
-    Timetext = font.render('Time elapsed:' + str(round(timeForLevel,1)), 1, (255,251,0))
-    screen.blit(Timetext, (20, 10))
-    
-
     pygame.display.update()
 
 pygame.quit()
